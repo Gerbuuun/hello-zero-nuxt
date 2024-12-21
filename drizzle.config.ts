@@ -8,5 +8,5 @@ export default defineConfig({
   dbCredentials: {
     url: 'postgresql://user:password@localhost:5430/zstart',
   },
-  schema: './server/plugins/seed.ts',
+  schema: './database.ts',
 })

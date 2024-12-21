@@ -1,4 +1,4 @@
-import { column, definePermissions, createTableSchema, createSchema } from '@rocicorp/zero'
+import { column, definePermissions, createSchema } from '@rocicorp/zero'
 import type { Row, TableSchema } from '@rocicorp/zero'
 
 const { enumeration } = column
@@ -45,24 +45,8 @@ const membershipSchema = {
     context: { destField: 'id', sourceField: 'contextID', destSchema: () => groupSchema },
     group: { destField: 'id', sourceField: 'groupID', destSchema: () => groupSchema },
     user: { destField: 'id', sourceField: 'userID', destSchema: () => userSchema },
-    plan: { destField: 'id', sourceField: 'planID', destSchema: () => planSchema },
   },
 } as const
-
-const notificationSchema = createTableSchema({
-  tableName: 'notification',
-  columns: {
-    id: 'string',
-    title: 'string',
-    content: 'string',
-    readAt: { type: 'number', optional: true },
-    userID: 'string',
-    createdAt: 'number',
-    updatedAt: 'number',
-    deletedAt: { type: 'number', optional: true },
-  },
-  primaryKey: ['id'],
-})
 
 const permissionSchema = {
   tableName: 'permission',
@@ -71,24 +55,6 @@ const permissionSchema = {
     permission: enumeration<'read' | 'write'>(),
     actorID: 'string',
     subjectID: 'string',
-    contextID: 'string',
-    createdAt: 'number',
-    updatedAt: 'number',
-    deletedAt: { type: 'number', optional: true },
-  } satisfies TableSchema['columns'],
-  primaryKey: ['id'],
-  relationships: {
-    context: { destField: 'id', sourceField: 'contextID', destSchema: () => groupSchema },
-  },
-} as const
-
-const planSchema = {
-  tableName: 'plan',
-  columns: {
-    id: 'string',
-    name: 'string',
-    description: { type: 'string', optional: true },
-    price: 'number',
     contextID: 'string',
     createdAt: 'number',
     updatedAt: 'number',
@@ -122,18 +88,14 @@ export const schema = createSchema({
   tables: {
     group: groupSchema,
     membership: membershipSchema,
-    notification: notificationSchema,
     permission: permissionSchema,
-    plan: planSchema,
     user: userSchema,
   },
 })
 
 export type GroupRow = Row<typeof groupSchema>
 export type MembershipRow = Row<typeof membershipSchema>
-export type NotificationRow = Row<typeof notificationSchema>
 export type PermissionRow = Row<typeof permissionSchema>
-export type PlanRow = Row<typeof planSchema>
 export type UserRow = Row<typeof userSchema>
 
 type AuthData = {
@@ -157,15 +119,12 @@ export const permissions = definePermissions<AuthData, typeof schema>(schema, ()
   // // Context rules
   // const allowIfInContext = (
   //   authData: AuthData,
-  //   eb: ExpressionBuilder<typeof groupSchema | typeof membershipSchema | typeof permissionSchema | typeof planSchema>,
+  //   eb: ExpressionBuilder<typeof groupSchema | typeof membershipSchema | typeof permissionSchema>,
   // ) => eb.exists('context', iq => iq.where(eb => isGroupMember(authData, eb)))
   // const allowIfContextAdmin = (
   //   authData: AuthData,
-  //   eb: ExpressionBuilder<typeof groupSchema | typeof membershipSchema | typeof permissionSchema | typeof planSchema>,
+  //   eb: ExpressionBuilder<typeof groupSchema | typeof membershipSchema | typeof permissionSchema>,
   // ) => eb.exists('context', iq => iq.where(eb => isGroupAdmin(authData, eb)))
-
-  // // Notification rules
-  // const allowIfReceiver = (authData: AuthData, eb: ExpressionBuilder<typeof notificationSchema>) => eb.cmp('userID', '=', authData.sub!)
 
   // // Permission rules
   // const allowIfAssignedToActor = (authData: AuthData, eb: ExpressionBuilder<typeof permissionSchema>) => eb.cmp('actorID', '=', authData.sub!)
@@ -196,28 +155,9 @@ export const permissions = definePermissions<AuthData, typeof schema>(schema, ()
     //     delete: [isAdminOfMembersGroup],
     //   },
     // },
-    // notification: {
-    //   row: {
-    //     select: [allowIfReceiver],
-    //     update: {
-    //       preMutation: [allowIfReceiver],
-    //     },
-    //     delete: [allowIfReceiver],
-    //   },
-    // },
     // permission: {
     //   row: {
     //     select: [allowIfAssignedToActor, allowIfContextAdmin],
-    //     insert: [allowIfContextAdmin],
-    //     update: {
-    //       preMutation: [allowIfContextAdmin],
-    //     },
-    //     delete: [allowIfContextAdmin],
-    //   },
-    // },
-    // plan: {
-    //   row: {
-    //     select: [allowIfInContext],
     //     insert: [allowIfContextAdmin],
     //     update: {
     //       preMutation: [allowIfContextAdmin],

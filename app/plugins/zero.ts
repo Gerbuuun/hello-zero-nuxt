@@ -1,7 +1,7 @@
 import { Zero } from '@rocicorp/zero'
 import { decodeJwt } from 'jose'
 
-import { schema } from '../db/schema'
+import { schema } from '../zero/schema'
 
 export default defineNuxtPlugin(() => {
   const encodedJWT = useCookie('jwt')
