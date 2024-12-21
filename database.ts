@@ -39,25 +39,6 @@ export const membership = pgTable('membership', {
   }
 })
 
-export const permission = pgTable('permission', {
-  id: text('id').primaryKey().notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'string' }),
-  permission: text('permission').notNull(),
-  actorId: text('actor_id').notNull(),
-  subjectId: text('subject_id').notNull(),
-  contextId: text('context_id').notNull(),
-},
-(table) => {
-  return {
-    deletedAtIdx: index().on(table.deletedAt),
-    contextIdIdx: index().on(table.contextId),
-    actorIdIdx: index().on(table.actorId),
-    subjectIdIdx: index().on(table.subjectId),
-  }
-})
-
 export const user = pgTable('user', {
   id: text('id').primaryKey().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),

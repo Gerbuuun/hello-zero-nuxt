@@ -22,7 +22,6 @@ const groupSchema = {
     parent: { destField: 'id', sourceField: 'parentID', destSchema: () => groupSchema },
     children: { destField: 'parentID', sourceField: 'id', destSchema: () => groupSchema },
     memberships: { destField: 'groupID', sourceField: 'id', destSchema: () => membershipSchema },
-    permissions: { destField: 'actorID', sourceField: 'id', destSchema: () => permissionSchema },
   },
 } as const
 
@@ -48,24 +47,6 @@ const membershipSchema = {
   },
 } as const
 
-const permissionSchema = {
-  tableName: 'permission',
-  columns: {
-    id: 'string',
-    permission: enumeration<'read' | 'write'>(),
-    actorID: 'string',
-    subjectID: 'string',
-    contextID: 'string',
-    createdAt: 'number',
-    updatedAt: 'number',
-    deletedAt: { type: 'number', optional: true },
-  } satisfies TableSchema['columns'],
-  primaryKey: ['id'],
-  relationships: {
-    context: { destField: 'id', sourceField: 'contextID', destSchema: () => groupSchema },
-  },
-} as const
-
 const userSchema = {
   tableName: 'user',
   columns: {
@@ -79,7 +60,6 @@ const userSchema = {
   primaryKey: ['id'],
   relationships: {
     memberships: { destField: 'userID', sourceField: 'id', destSchema: () => membershipSchema },
-    permissions: { destField: 'actorID', sourceField: 'id', destSchema: () => permissionSchema },
   },
 } as const
 
@@ -88,14 +68,12 @@ export const schema = createSchema({
   tables: {
     group: groupSchema,
     membership: membershipSchema,
-    permission: permissionSchema,
     user: userSchema,
   },
 })
 
 export type GroupRow = Row<typeof groupSchema>
 export type MembershipRow = Row<typeof membershipSchema>
-export type PermissionRow = Row<typeof permissionSchema>
 export type UserRow = Row<typeof userSchema>
 
 type AuthData = {
@@ -126,9 +104,6 @@ export const permissions = definePermissions<AuthData, typeof schema>(schema, ()
   //   eb: ExpressionBuilder<typeof groupSchema | typeof membershipSchema | typeof permissionSchema>,
   // ) => eb.exists('context', iq => iq.where(eb => isGroupAdmin(authData, eb)))
 
-  // // Permission rules
-  // const allowIfAssignedToActor = (authData: AuthData, eb: ExpressionBuilder<typeof permissionSchema>) => eb.cmp('actorID', '=', authData.sub!)
-
   // // User rules
   // const allowIfUser = (authData: AuthData, eb: ExpressionBuilder<typeof userSchema>) => eb.cmp('id', '=', authData.sub!)
   // const allowIfUserIsInContext = (
@@ -153,16 +128,6 @@ export const permissions = definePermissions<AuthData, typeof schema>(schema, ()
     //       preMutation: [isAdminOfMembersGroup],
     //     },
     //     delete: [isAdminOfMembersGroup],
-    //   },
-    // },
-    // permission: {
-    //   row: {
-    //     select: [allowIfAssignedToActor, allowIfContextAdmin],
-    //     insert: [allowIfContextAdmin],
-    //     update: {
-    //       preMutation: [allowIfContextAdmin],
-    //     },
-    //     delete: [allowIfContextAdmin],
     //   },
     // },
     // user: {
